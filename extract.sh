@@ -8,25 +8,33 @@
 #                           #
 #***************************#
 
+fichierExtract="/tmp/file-tmp"
+fichierB="$fichierExtract.b"
 
 ################################################################################
 # Télécharge le fichier .b se trouvant à l’url en paramètre et le dézip dans
 # /tmp/file-tmp.
 # Globals:
-#     [TODO:var-name]
+#     $fichierB: le chemin vers le fichier compressé .b
+#     $fichierExtract: le chemin vers le fichier décompressé
 # Arguments:
 #     $1: le curl (sans de --output) à faire pour récupérer le fichier
 ################################################################################
 function recupDezip {
-    command="$@ --output /tmp/file-tmp.b"
-    eval $command
-    
-    if [ -f "/tmp/file-tmp" ]
+    command="$@ --output $fichierB"
+    eval $command 2> /dev/null
+
+    if [ -f $fichierExtract ]
     then
-        rm /tmp/file-tmp
+        rm $fichierExtract
     fi
     
-    brotli -d -S .b /tmp/file-tmp.b
+    brotli -d -S .b $fichierB
+    if [ $? -eq 1 ]
+    then
+        sleep 3s
+        recupDezip $@
+    fi
 }
 
 read -p "Entrez commande curl sans --compressed : " commandCurl
@@ -45,13 +53,14 @@ then
     nbPage=$((nbPage + 1))
 fi
 
+echo 
 read -p "Attention ! $nbPage pages seront traités !"
 
 if [ -f result.json ]
 then
     rm result.json
 fi
-cp /tmp/file-tmp result.json
+cp $fichierExtract result.json
 
 j=25
 for i in $(seq 1 $nbPage)
@@ -61,6 +70,5 @@ do
     recupDezip $newCommand
     python3 help.py -u
     j=$((j + 25))
+    echo -e "\r$i/$nbPage pages\c"
 done
-
-echo $nbPage
