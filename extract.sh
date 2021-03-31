@@ -10,6 +10,7 @@
 
 fichierExtract="/tmp/file-tmp"
 fichierB="$fichierExtract.b"
+fichierJson="$fichierExtract.json"
 
 ################################################################################
 # Télécharge le fichier .b se trouvant à l’url en paramètre et le dézip dans
@@ -37,9 +38,15 @@ function recupDezip {
     fi
 }
 
+function recupJson {
+    command="$@ --output $fichierExtract"
+    eval $command 2> /dev/null
+}
+
 read -p "Entrez commande curl sans --compressed : " commandCurl
 
-recupDezip $commandCurl
+#recupDezip $commandCurl
+recupJson $commandCurl
 
 # on récupère le nombre de résultat pour avoir le nombre de page
 nbResult=$(python3 help.py -g)
@@ -60,6 +67,7 @@ if [ -f result.json ]
 then
     rm result.json
 fi
+#cp $fichierExtract result.json
 cp $fichierExtract result.json
 
 j=25
@@ -67,7 +75,8 @@ for i in $(seq 1 $nbPage)
 do
     newUrl="${url::-1}$j${url: -1}"
     newCommand="curl $newUrl $args"
-    recupDezip $newCommand
+    #recupDezip $newCommand
+    recupJson $newCommand
     python3 help.py -u
     j=$((j + 25))
     echo -e "\r$i/$nbPage pages\c"
