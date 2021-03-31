@@ -6,7 +6,7 @@ Script Bash & Python pour extraire dans un fichier json les résultats d’une r
 
 Installer le packet `curl`.
 
-    sudo apt install curl brotli
+    sudo apt install curl 
 
 
 ## Utilisation
